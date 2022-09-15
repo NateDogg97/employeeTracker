@@ -3,7 +3,8 @@ const inquirer = require('inquirer');
 const mysql = require('mysql2');
 
 const departmentArray =[];
-
+const roleArray =[];
+const employeeArray = [];
 
 // Connect to database
 const db = mysql.createConnection(
@@ -116,9 +117,10 @@ function init () {
             ])
             .then((answers) => {
                 departmentArray.push(answers.department_name);
+
                 let sql = `INSERT INTO departments (department_name)
                           VALUES (?)`;
-                db.query(sql, answers, (err, rows) => {
+                db.query(sql, answers.department_name, (err, rows) => {
                     if(err){
                         console.error(err);
                         return;
@@ -179,7 +181,20 @@ function init () {
                 }
             ])
             .then((answers) => {
+                roleArray.push(answers.title);
 
+                let department = parseInt(departmentArray.indexOf(answers.department)) + parseInt(1);
+                const sql = `INSERT INTO roles (title, salary, department_id)
+                            VALUES (?, ?, ?)`;
+                const params = [answers.title, answers.salary, department];
+                db.query(sql, params, (err, data) => {
+                    if(err){
+                        console.error(err);
+                        return;
+                    }
+                    console.log(`Role added\n`);
+                    options();
+                })
             })
         }
 
@@ -200,7 +215,33 @@ function init () {
             values.map(obj => departmentArray.push(obj));
         })
     }
+
+    function generateRoleArray() {
+        const sql = `SELECT title FROM roles`
+        db.query(sql, (err, data) => {
+            if(err){
+                console.error(err);
+                return;
+            }
+            let values = data.map(obj => obj.title);
+            values.map(obj => roleArray.push(obj));
+        })
+    }
+
+    function generateEmployeeArray() {
+        const sql = `SELECT CONCAT(first_name, last_name) AS name FROM employees`
+        db.query(sql, (err, data) => {
+            if(err){
+                console.error(err);
+                return;
+            }
+            let values = data.map(obj => obj.name);
+            values.map(obj => employeeArray.push(obj));
+        })
+    }
     
+    generateEmployeeArray();
+    generateRoleArray();
     generateDepartmentArray();
     options();
 };
