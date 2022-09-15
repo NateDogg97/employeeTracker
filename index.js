@@ -4,7 +4,7 @@ const mysql = require('mysql2');
 
 const departmentArray =[];
 const roleArray =[];
-const employeeArray = [];
+const employeeArray = [null];
 
 // Connect to database
 const db = mysql.createConnection(
@@ -78,7 +78,66 @@ function init () {
         };
 
         function addEmployee() {
+            inquirer.prompt([
+                {
+                    type: 'input',
+                    name: 'fname',
+                    message: `What is the employee's first name?`,
+                    validate: (answer) => {
+                        const pass = answer.match(/[a-zA-Z][^0-9]/);
+                        if(answer !== '' && pass){
+                            return true
+                        }
+                        return "Do not use numbers when adding a new employee."
+                    }
+                },
+                {
+                    type: 'input',
+                    name: 'lname',
+                    message: `What is the employee's last name?`,
+                    validate: (answer) => {
+                        const pass = answer.match(/[a-zA-Z][^0-9]/);
+                        if(answer !== '' && pass){
+                            return true
+                        }
+                        return "Do not use numbers when adding a new employee."
+                    }
+                },
+                {
+                    type: 'list',
+                    name: 'role',
+                    message: 'What is their role?',
+                    choices: roleArray
+                },
+                {
+                    type: 'list',
+                    name: 'manager',
+                    message: 'Who is their manager?',
+                    choices: employeeArray
+                }
+            ])
+            .then((answers) => {
+                let name = `${answers.fname} ${answers.lname}`
+                employeeArray.push(name);
 
+                let role = parseInt(roleArray.indexOf(answers.role)) + parseInt(1);
+                managerID = () => {
+                    if (answers.manager !== null){
+                        return parseInt(employeeArray.indexOf(answers.manager)) + parseInt(1);
+                    }
+                }
+                const sql = `INSERT INTO employees (first_name, last_name, role_id, manager_id)
+                            VALUES (?, ?, ?, ?)`;
+                const params = [answers.title, answers.salary, role, managerID()];
+                db.query(sql, params, (err, data) => {
+                    if(err){
+                        console.error(err);
+                        return;
+                    }
+                    console.log(`Employee added\n`);
+                    options();
+                })
+            })
         }
 
         function updateEmployee() {
@@ -205,7 +264,7 @@ function init () {
     }   
     
     function generateDepartmentArray() {
-        const sql = `SELECT department_name FROM departments`
+        const sql = `SELECT department_name FROM departments ORDER BY id`
         db.query(sql, (err, data) => {
             if(err){
                 console.error(err);
@@ -217,7 +276,7 @@ function init () {
     }
 
     function generateRoleArray() {
-        const sql = `SELECT title FROM roles`
+        const sql = `SELECT title FROM roles ORDER BY id`
         db.query(sql, (err, data) => {
             if(err){
                 console.error(err);
@@ -229,7 +288,7 @@ function init () {
     }
 
     function generateEmployeeArray() {
-        const sql = `SELECT CONCAT(first_name, last_name) AS name FROM employees`
+        const sql = `SELECT CONCAT(first_name, last_name) AS name FROM employees ORDER BY id`
         db.query(sql, (err, data) => {
             if(err){
                 console.error(err);
