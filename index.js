@@ -4,7 +4,7 @@ const mysql = require('mysql2');
 
 const departmentArray =[];
 const roleArray =[];
-const employeeArray = [null];
+const employeeArray = ['None'];
 
 // Connect to database
 const db = mysql.createConnection(
@@ -121,14 +121,17 @@ function init () {
                 employeeArray.push(name);
 
                 let role = parseInt(roleArray.indexOf(answers.role)) + parseInt(1);
+
                 managerID = () => {
-                    if (answers.manager !== null){
-                        return parseInt(employeeArray.indexOf(answers.manager)) + parseInt(1);
-                    }
+                    if (answers.manager !== 'None'){
+                        return parseInt(employeeArray.indexOf(answers.manager));
+                    } 
+                    return null;
                 }
+
                 const sql = `INSERT INTO employees (first_name, last_name, role_id, manager_id)
                             VALUES (?, ?, ?, ?)`;
-                const params = [answers.title, answers.salary, role, managerID()];
+                const params = [answers.fname, answers.lname, role, managerID()];
                 db.query(sql, params, (err, data) => {
                     if(err){
                         console.error(err);
@@ -288,7 +291,7 @@ function init () {
     }
 
     function generateEmployeeArray() {
-        const sql = `SELECT CONCAT(first_name, last_name) AS name FROM employees ORDER BY id`
+        const sql = `SELECT CONCAT(first_name, ' ', last_name) AS name FROM employees ORDER BY id`
         db.query(sql, (err, data) => {
             if(err){
                 console.error(err);
