@@ -1,22 +1,15 @@
 const cTable = require('console.table');
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
-// const express = require('express');
 
-// const PORT = process.env.PORT || 3001;
-// const app = express();
+const departmentArray =[];
 
-// // Express middleware
-// app.use(express.urlencoded({ extended: false }));
-// app.use(express.json());
 
 // Connect to database
 const db = mysql.createConnection(
   {
     host: 'localhost',
-    // MySQL username,
     user: 'root',
-    // TODO: Add MySQL password here
     password: ' ',
     database: 'company_db'
   },
@@ -122,6 +115,7 @@ function init () {
                 }
             ])
             .then((answers) => {
+                departmentArray.push(answers.department_name);
                 let sql = `INSERT INTO departments (department_name)
                           VALUES (?)`;
                 db.query(sql, answers, (err, rows) => {
@@ -129,7 +123,7 @@ function init () {
                         console.error(err);
                         return;
                     }
-                    console.log(`\nDepartment Added`);
+                    console.log(`\nDepartment Added`);                   
                     options();
                 })
             })
@@ -152,13 +146,62 @@ function init () {
         }
 
         function addRole() {
+            inquirer.prompt([
+                {
+                    type: 'input',
+                    name: 'title',
+                    message: 'What is name of the new role?',
+                    validate: (answer) => {
+                        const pass = answer.match(/[a-zA-Z][^0-9]/);
+                        if(answer !== '' && pass){
+                            return true
+                        }
+                        return "Do not use numbers when adding a new role."
+                    }
+                },
+                {
+                    type: 'input',
+                    name: 'salary',
+                    message: 'What is the salary for this role?',
+                    validate: (answer) => {
+                        const fail = answer.match(/[^0-9]/);
+                        if(answer !== '' && !fail){
+                            return true
+                        }
+                        return "Please enter only digits."
+                    }
+                },
+                {
+                    type: 'list',
+                    name: 'department',
+                    message: 'To what department does this role belong?',
+                    choices: departmentArray
+                }
+            ])
+            .then((answers) => {
 
+            })
         }
 
         function quit() {
 
         }
+
+    }   
+    
+    function generateDepartmentArray() {
+        const sql = `SELECT department_name FROM departments`
+        db.query(sql, (err, data) => {
+            if(err){
+                console.error(err);
+                return;
+            }
+            let values = data.map(obj => obj.department_name);
+            values.map(obj => departmentArray.push(obj));
+        })
     }
+    
+    generateDepartmentArray();
     options();
 };
 
