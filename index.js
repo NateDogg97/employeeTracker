@@ -70,7 +70,8 @@ function init () {
                         FROM employees 
                         JOIN roles ON employees.role_id = roles.id 
                         JOIN departments ON roles.department_id = departments.id 
-                        LEFT JOIN employees manager ON employees.manager_id = manager.id`;
+                        LEFT JOIN employees manager ON employees.manager_id = manager.id
+                        ORDER BY employees.id`;
             db.query(sql, (err, rows) => {
                 if(err) {
                     console.error(err);
@@ -91,7 +92,9 @@ function init () {
         }
 
         function viewAllDepartments() {
-            const sql = `SELECT id, department_name AS Department FROM departments`
+            const sql = `SELECT id, department_name AS Department 
+                        FROM departments
+                        ORDER BY departments.id`
             db.query(sql, (err, rows) => {
                 if(err) {
                     console.error(err);
@@ -104,13 +107,39 @@ function init () {
         }
 
         function addDepartment() {
-
+            inquirer.prompt([
+                {
+                    type: 'input',
+                    name: 'department_name',
+                    message: 'What is name of the department?',
+                    validate: (answer) => {
+                        const pass = answer.match(/[a-zA-Z][^0-9]/);
+                        if(answer !== '' && pass){
+                            return true
+                        }
+                        return "Do not use numbers when adding a new department."
+                    }
+                }
+            ])
+            .then((answers) => {
+                let sql = `INSERT INTO departments (department_name)
+                          VALUES (?)`;
+                db.query(sql, answers, (err, rows) => {
+                    if(err){
+                        console.error(err);
+                        return;
+                    }
+                    console.log(`\nDepartment Added`);
+                    options();
+                })
+            })
         }
 
         function viewAllRoles() {
             const sql = `SELECT roles.id, title AS Title, departments.department_name AS Department, salary AS Salary
                         FROM roles
-                        JOIN departments ON roles.department_id = departments.id`;
+                        JOIN departments ON roles.department_id = departments.id
+                        ORDER BY roles.id`;
             db.query(sql, (err, rows) => {
                 if(err) {
                     console.error(err);
