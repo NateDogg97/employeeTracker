@@ -66,10 +66,11 @@ function init () {
         })
 
         function viewAllEmployees() {
-            const sql = `SELECT employees.id, employees.first_name AS First, employees.last_name AS Last, roles.title AS Title, departments.department_name AS Department, roles.salary AS Salary, employees.manager_id AS Manager FROM employees 
+            const sql = `SELECT employees.id, employees.first_name AS First, employees.last_name AS Last, roles.title AS Title, departments.department_name AS Department, roles.salary AS Salary, CONCAT(manager.first_name, ' ', manager.last_name) AS Manager 
+                        FROM employees 
                         JOIN roles ON employees.role_id = roles.id 
                         JOIN departments ON roles.department_id = departments.id 
-                        LEFT JOIN employees a ON employees.manager_id = CONCAT_WS(' ', a.first_name, a.last_name)`;
+                        LEFT JOIN employees manager ON employees.manager_id = manager.id`;
             db.query(sql, (err, rows) => {
                 if(err) {
                     console.error(err);
@@ -107,7 +108,18 @@ function init () {
         }
 
         function viewAllRoles() {
-
+            const sql = `SELECT roles.id, title AS Title, departments.department_name AS Department, salary AS Salary
+                        FROM roles
+                        JOIN departments ON roles.department_id = departments.id`;
+            db.query(sql, (err, rows) => {
+                if(err) {
+                    console.error(err);
+                    return;
+                }
+                console.log(`\n`);
+                console.table(rows);
+                options();
+            })
         }
 
         function addRole() {
