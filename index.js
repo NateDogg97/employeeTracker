@@ -1,10 +1,12 @@
 const cTable = require('console.table');
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
+const { exit } = require('process');
 
 const departmentArray =[];
 const roleArray =[];
-const employeeArray = ['None'];
+const noneArray =['None']
+const employeeArray = [];
 
 // Connect to database
 const db = mysql.createConnection(
@@ -113,7 +115,7 @@ function init () {
                     type: 'list',
                     name: 'manager',
                     message: 'Who is their manager?',
-                    choices: employeeArray
+                    choices: [...employeeArray, ...noneArray]
                 }
             ])
             .then((answers) => {
@@ -124,7 +126,7 @@ function init () {
 
                 managerID = () => {
                     if (answers.manager !== 'None'){
-                        return parseInt(employeeArray.indexOf(answers.manager));
+                        return parseInt(employeeArray.indexOf(answers.manager)) + parseInt(1);
                     } 
                     return null;
                 }
@@ -144,7 +146,36 @@ function init () {
         }
 
         function updateEmployee() {
+            inquirer.prompt([
+                {
+                    type: 'list',
+                    name: 'employee',
+                    message: 'Which employee would you like to update?',
+                    choices: employeeArray
+                },
+                {
+                    type: 'list',
+                    name: 'newRole',
+                    message: `What is the employee's new role?`,
+                    choices: roleArray
+                }
+            ])
+            .then((answers) => {
+                const sql = `UPDATE employees SET role_id = ? WHERE id = ?`;
 
+                let employeeID = parseInt(employeeArray.indexOf(answers.employee)) + parseInt(1);
+                let newRole = parseInt(roleArray.indexOf(answers.newRole)) + parseInt(1);
+                const params = [newRole, employeeID];
+
+                db.query(sql, params, (err, data) => {
+                    if(err){
+                        console.error(err);
+                        return;
+                    }
+                    console.log(`Employee's role has been updated\n`);
+                    options();
+                })
+            })
         }
 
         function viewAllDepartments() {
@@ -261,7 +292,7 @@ function init () {
         }
 
         function quit() {
-
+            process.exit(0);
         }
 
     }   
