@@ -32,6 +32,7 @@
   ## Usage
 
   You will be prompted with options. Simply select the options using the arrows keys and enter/return to navigate the program.
+  A video demonstration of the application: https://drive.google.com/file/d/1hW3AGi5Sr2QBA2vw_Z3oudh4YC8HGSGM/view
 
   ## Contributing
 
